@@ -56,9 +56,39 @@ app.put('/update-user', authenticateToken, (req, res) => {
     });
 });
 
+app.post('/create-user', authenticateToken, (req, res) => {
+    const tokenUserName = req.username;
+    const newUser = req.body;
+
+    const { name , email , username, password } = newUser;
+
+    if (!name || !email || !username || !password) {
+        return res.status(400).json({ message: 'All fields (name, email, username, password) are required.' });
+    }
+
+    const USER_TOKEN_FOUND =  USER_LIST_DB.findIndex((user) => user.username === tokenUserName);
+
+    if(USER_TOKEN_FOUND === -1){
+        return res.status(403).json({ message: 'user not found' });
+    }
+
+    const USER_FOUND = USER_LIST_DB.findIndex((user) => user.username === newUser.name);
+    const USER_ALREADY_REGISTERED = USER_FOUND !== -1;
+
+    if(USER_ALREADY_REGISTERED){
+        return res.status(409).json({ message: 'user already registered'});
+    }
+
+    USER_LIST_DB.push(newUser);
+
+    return res.status(201).json({ message: 'user successfully created.'});
+});
+
 app.post('/validate-token', authenticateToken, (req, res) => {
     return res.json({ message: 'token valido.', username: req.username });
-})
+});
+
+
 app.listen(PORT, () => {
     console.log(`O servidor esta rodando no http://localhost:${PORT}`);
 })
